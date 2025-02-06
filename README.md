@@ -2,6 +2,12 @@
 
 一个基于 React + Next.js 的可视化页面编辑器，支持组件拖拽、属性编辑、实时预览等功能。
 
+![editor](./document/demo/editor.png)
+可视化编辑器
+
+![pages](./document/demo/pages.png)
+页面列表
+
 ## 技术栈
 
 - React 18
