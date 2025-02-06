@@ -107,6 +107,8 @@ export function PropertyPanel({ component, onUpdate }: PropertyPanelProps) {
         );
       case 'select':
         return <Select options={editor.options} />;
+      case 'switch':
+        return <Switch />;
       case 'space':
         return (
           <SpaceEditor
@@ -164,7 +166,7 @@ export function PropertyPanel({ component, onUpdate }: PropertyPanelProps) {
                         label={editor.label}
                         name={editor.field}
                       >
-                        <Input />
+                        {renderEditorField(editor)}
                       </Form.Item>
                     ))}
                   </Space>

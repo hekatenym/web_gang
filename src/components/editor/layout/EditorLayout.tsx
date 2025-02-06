@@ -3,7 +3,8 @@ import { Layout, Button, Space, Tooltip, theme } from 'antd';
 import ComponentPanel from './ComponentPanel';
 import { Canvas } from './Canvas';
 import { PropertyPanel } from './PropertyPanel';
-import type { Component, ComponentType } from '@/types/component';
+import type { Component } from '@/types/component';
+import { ComponentType } from '@/types/component';
 import type { DropResult } from '@hello-pangea/dnd';
 import { 
   SaveOutlined, 
@@ -125,10 +126,32 @@ export function EditorLayout({
         data: {
           ...config.defaultProps.data,
         }
-      }
+      },
+      children: [],
     };
 
-    onAddComponent(newComponent);
+    if (selectedComponent?.type === ComponentType.CONTAINER) {
+      const updatedContainer = {
+        ...selectedComponent,
+        children: [
+          ...(selectedComponent.children || []),
+          newComponent
+        ],
+      };
+      
+      const updatedComponents = components.map(comp => {
+        if (comp.id === selectedComponent.id) {
+          return updatedContainer;
+        }
+        return comp;
+      });
+      
+      onComponentUpdate(updatedContainer);
+      onComponentSelect(newComponent);
+    } else {
+      onAddComponent(newComponent);
+      onComponentSelect(newComponent);
+    }
   };
 
   return (
@@ -178,7 +201,11 @@ export function EditorLayout({
       <Layout hasSider style={mainLayoutStyle}>
         <Sider width={280} style={siderStyle}>
           <div style={scrollContainerStyle}>
-            <ComponentPanel />
+            <ComponentPanel
+              components={components}
+              selectedComponent={selectedComponent}
+              onSelect={onComponentSelect}
+            />
           </div>
         </Sider>
         <Content style={contentStyle}>

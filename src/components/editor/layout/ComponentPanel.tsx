@@ -1,70 +1,66 @@
 import React from 'react';
-import { Droppable, Draggable } from '@hello-pangea/dnd';
-import { theme } from 'antd';
-import { getAvailableComponents } from '@/config/components';
+import { Tabs, theme } from 'antd';
+import { Component } from '@/types/component';
+import { ComponentTree } from './ComponentTree';
+import { DraggableComponentList } from './DraggableComponentList';
 
 const { useToken } = theme;
 
-export function ComponentPanel() {
-  const { token } = useToken();
-  const components = getAvailableComponents();
-
-  const componentItemStyle = (isDragging: boolean): React.CSSProperties => ({
-    padding: token.paddingSM,
-    marginBottom: token.marginXS,
-    background: isDragging ? token.colorInfoBg : token.colorBgTextHover,
-    borderRadius: token.borderRadius,
-    cursor: 'move',
-    transition: 'all 0.2s',
-    display: 'flex',
-    alignItems: 'center',
-    gap: token.marginXS,
-  });
-
-  return (
-    <Droppable
-      droppableId="component-panel"
-      isDropDisabled={true}
-      type="COMPONENT"
-    >
-      {(provided) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.droppableProps}
-          style={{
-            padding: token.padding,
-            background: token.colorBgContainer,
-            borderRadius: token.borderRadiusLG,
-            height: '100%',
-          }}
-        >
-          {components.map((config, index) => (
-            <Draggable
-              key={config.type}
-              draggableId={`component-${config.type}`}
-              index={index}
-            >
-              {(provided, snapshot) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.draggableProps}
-                  {...provided.dragHandleProps}
-                  style={{
-                    ...componentItemStyle(snapshot.isDragging),
-                    ...provided.draggableProps.style,
-                  }}
-                >
-                  <span style={{ fontSize: 16 }}>{config.icon}</span>
-                  <span>{config.title}</span>
-                </div>
-              )}
-            </Draggable>
-          ))}
-          {provided.placeholder}
-        </div>
-      )}
-    </Droppable>
-  );
+interface ComponentPanelProps {
+  components: Component[];
+  selectedComponent: Component | null;
+  onSelect: (component: Component) => void;
 }
 
-export default React.memo(ComponentPanel); 
+export const ComponentPanel: React.FC<ComponentPanelProps> = ({
+  components,
+  selectedComponent,
+  onSelect,
+}) => {
+  const { token } = useToken();
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Tabs
+        items={[
+          {
+            key: 'components',
+            label: '组件',
+            children: (
+              <div style={{ padding: token.padding }}>
+                <DraggableComponentList />
+              </div>
+            ),
+          },
+          {
+            key: 'tree',
+            label: '内容树',
+            children: (
+              <div style={{ 
+                padding: token.padding,
+                height: `calc(100vh - ${token.margin * 2}px - ${token.controlHeight * 2}px)`,
+                overflowY: 'auto'
+              }}>
+                <ComponentTree
+                  components={components}
+                  selectedId={selectedComponent?.id}
+                  onSelect={onSelect}
+                />
+              </div>
+            ),
+          },
+        ]}
+        style={{
+          flex: 1,
+          overflow: 'hidden',
+        }}
+        tabBarStyle={{
+          margin: `0 ${token.padding}px`,
+          paddingTop: token.padding,
+        }}
+      />
+    </div>
+  );
+};
+
+export default ComponentPanel; 

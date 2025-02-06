@@ -79,15 +79,38 @@ export function Editor({
 
   // 处理组件更新
   const handleComponentUpdate = useCallback((updatedComponent: Component) => {
-    setComponents(prevComponents => {
-      const newComponents = prevComponents.map(comp => 
-        comp.id === updatedComponent.id ? updatedComponent : comp
-      );
-      // 触发 onChange 回调
-      onChange?.(newComponents);
-      return newComponents;
+    setComponents(prevComponents => 
+      prevComponents.map(component => {
+        if (component.id === updatedComponent.id) {
+          return updatedComponent;
+        }
+        // 检查子组件
+        if (component.children?.length) {
+          return {
+            ...component,
+            children: updateComponentInChildren(component.children, updatedComponent)
+          };
+        }
+        return component;
+      })
+    );
+  }, []);
+
+  // 递归更新子组件
+  const updateComponentInChildren = (children: Component[], updatedComponent: Component): Component[] => {
+    return children.map(child => {
+      if (child.id === updatedComponent.id) {
+        return updatedComponent;
+      }
+      if (child.children?.length) {
+        return {
+          ...child,
+          children: updateComponentInChildren(child.children, updatedComponent)
+        };
+      }
+      return child;
     });
-  }, [onChange]);
+  };
 
   // 处理组件删除
   const handleComponentDelete = useCallback((componentId: string) => {

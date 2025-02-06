@@ -24,34 +24,25 @@ export const ComponentRenderer = React.memo(({ component, isPreview = false }: C
     return null;
   }
 
-  // 合并默认属性和组件属性
-  const style = {
-    ...config?.defaultProps.style,
-    ...component.props.style,
-  };
-
-  const data = {
-    ...config?.defaultProps.data,
-    ...component.props.data,
-  };
-
-  return (
-    <ComponentToRender
-      style={style}
-      data={data}
+  const renderComponent = (childComponent: Component) => (
+    <ComponentRenderer
+      key={childComponent.id}
+      component={childComponent}
       isPreview={isPreview}
     />
   );
-}, (prevProps, nextProps) => {
-  // 自定义比较函数，只有当组件 ID 相同且属性发生变化时才重新渲染
-  if (prevProps.component.id !== nextProps.component.id) {
-    return false;
-  }
-  
+
   return (
-    JSON.stringify(prevProps.component.props) === JSON.stringify(nextProps.component.props) &&
-    prevProps.isPreview === nextProps.isPreview
+    <ComponentToRender
+      style={component.props.style}
+      data={component.props.data}
+      isPreview={isPreview}
+      children={component.children}
+      renderComponent={renderComponent}
+    />
   );
 });
+
+ComponentRenderer.displayName = 'ComponentRenderer';
 
 export default ComponentRenderer;
