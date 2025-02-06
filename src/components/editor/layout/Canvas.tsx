@@ -53,14 +53,19 @@ export function Canvas({
   };
 
   return (
-    <Droppable droppableId="canvas">
+    <Droppable 
+      droppableId="canvas"
+      type="COMPONENT"
+    >
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
           style={{
-            ...dropAreaStyle(snapshot.isDraggingOver),
+            padding: token.padding,
             background: snapshot.isDraggingOver ? token.colorInfoBg : token.colorBgContainer,
+            borderRadius: token.borderRadiusLG,
+            minHeight: '100%',
           }}
           onClick={() => onSelect?.(null)}
         >

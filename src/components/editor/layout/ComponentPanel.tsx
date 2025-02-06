@@ -1,11 +1,11 @@
 import React from 'react';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
-import { getAvailableComponents } from '@/config/components';
 import { theme } from 'antd';
+import { getAvailableComponents } from '@/config/components';
 
 const { useToken } = theme;
 
-const ComponentPanel: React.FC = () => {
+export function ComponentPanel() {
   const { token } = useToken();
   const components = getAvailableComponents();
 
@@ -22,7 +22,11 @@ const ComponentPanel: React.FC = () => {
   });
 
   return (
-    <Droppable droppableId="component-panel" isDropDisabled>
+    <Droppable
+      droppableId="component-panel"
+      isDropDisabled={true}
+      type="COMPONENT"
+    >
       {(provided) => (
         <div
           ref={provided.innerRef}
@@ -36,7 +40,7 @@ const ComponentPanel: React.FC = () => {
         >
           {components.map((config, index) => (
             <Draggable
-              key={`component-${config.type}`}
+              key={config.type}
               draggableId={`component-${config.type}`}
               index={index}
             >
@@ -61,6 +65,6 @@ const ComponentPanel: React.FC = () => {
       )}
     </Droppable>
   );
-};
+}
 
 export default React.memo(ComponentPanel); 

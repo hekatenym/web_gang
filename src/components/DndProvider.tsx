@@ -17,10 +17,30 @@ export function DndProvider({ children, onDragEnd }: DndProviderProps) {
   const dispatch = useAppDispatch();
   const [tempComponent, setTempComponent] = useState<Component | null>(null);
 
+  const createTempComponent = (componentType: ComponentType): Component | null => {
+    const config = getComponentConfig(componentType);
+    if (!config) return null;
+
+    return {
+      id: generateId(),
+      type: componentType,
+      props: {
+        style: { ...config.defaultProps.style },
+        data: { ...config.defaultProps.data }
+      }
+    };
+  };
+
   const handleDragStart = (start: DragStart) => {
     if (start.source.droppableId === 'component-panel') {
-      const config = getComponentConfig(start.draggableId);
-      setTempComponent(createComponent(config));
+      // 从拖拽ID中提取组件类型
+      const componentType = start.draggableId.replace('component-', '') as ComponentType;
+      const newComponent = createTempComponent(componentType);
+      if (newComponent) {
+        setTempComponent(newComponent);
+        dispatch(setIsDragging(true));
+        dispatch(setDraggingComponent(newComponent));
+      }
     }
   };
 

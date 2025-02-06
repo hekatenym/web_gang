@@ -3,6 +3,7 @@ import { Form, Input, InputNumber, Select, Switch, Tabs, ColorPicker, Card, Spac
 import type { Component, ComponentType } from '@/types/component';
 import { getComponentConfig } from '@/config/components';
 import { theme } from 'antd';
+import { SpaceEditor } from '@/components/editor/editors/SpaceEditor';
 
 const { useToken } = theme;
 
@@ -26,6 +27,53 @@ export function PropertyPanel({ component, onUpdate }: PropertyPanelProps) {
     }
   }, [component, form]);
 
+  const handleValuesChange = (changedValues: any, allValues: any) => {
+    if (!onUpdate || !component) return;
+
+    const config = getComponentConfig(component.type as ComponentType);
+    if (!config) return;
+
+    // 分离样式和数据属性
+    const currentStyle: Record<string, any> = {};
+    const currentData: Record<string, any> = {};
+
+    // 使用所有表单值来更新
+    Object.entries(allValues).forEach(([key, value]) => {
+      // 检查是否是样式属性
+      const isStyleField = config.editors.style.some(editor => editor.field === key);
+      
+      if (isStyleField) {
+        // 对于颜色值，需要获取正确的格式
+        const editor = config.editors.style.find(e => e.field === key);
+        if (editor?.type === 'color' && value) {
+          // 检查值是否有 toHexString 方法（ColorPicker 的值）
+          currentStyle[key] = typeof value.toHexString === 'function' 
+            ? value.toHexString() 
+            : value;
+        } else {
+          currentStyle[key] = value;
+        }
+      } else {
+        currentData[key] = value;
+      }
+    });
+
+    // 更新组件，合并现有属性和新值
+    onUpdate({
+      ...component,
+      props: {
+        style: {
+          ...component.props.style,  // 保留未在表单中的样式属性
+          ...currentStyle,           // 更新表单中的样式属性
+        },
+        data: {
+          ...component.props.data,   // 保留未在表单中的数据属性
+          ...currentData,            // 更新表单中的数据属性
+        },
+      },
+    });
+  };
+
   if (!component) {
     return (
       <div className="p-4 text-center text-gray-400">
@@ -35,41 +83,42 @@ export function PropertyPanel({ component, onUpdate }: PropertyPanelProps) {
   }
 
   const config = getComponentConfig(component.type as ComponentType);
+  if (!config) return null;
 
-  const handleValuesChange = (changedValues: any) => {
-    if (!onUpdate || !config) return;
-
-    const newStyle = { ...component.props.style };
-    const newData = { ...component.props.data };
-
-    // 分类处理变更的值
-    Object.entries(changedValues).forEach(([key, value]) => {
-      // 检查是否是样式属性
-      const isStyleField = config.editors.style.some(editor => editor.field === key);
-      if (isStyleField) {
-        newStyle[key] = value;
-      } else {
-        newData[key] = value;
-      }
-    });
-
-    // 更新组件
-    onUpdate({
-      ...component,
-      props: {
-        style: newStyle,
-        data: newData,
-      },
-    });
+  const renderEditorField = (editor: any) => {
+    switch (editor.type) {
+      case 'color':
+        return (
+          <ColorPicker
+            format="hex"
+            allowClear={false}
+            showText
+          />
+        );
+      case 'number':
+        const needsPxUnit = ['fontSize', 'borderRadius', 'width', 'height', 'gap'].includes(editor.field);
+        return (
+          <InputNumber
+            min={editor.min}
+            max={editor.max}
+            step={editor.step}
+            addonAfter={needsPxUnit ? 'px' : undefined}
+          />
+        );
+      case 'select':
+        return <Select options={editor.options} />;
+      case 'space':
+        return (
+          <SpaceEditor
+            min={editor.min}
+            max={editor.max}
+            step={editor.step}
+          />
+        );
+      default:
+        return <Input />;
+    }
   };
-
-  if (!config) {
-    return (
-      <div className="p-4 text-center text-gray-400">
-        未找到组件配置
-      </div>
-    );
-  }
 
   return (
     <div className="p-4">
@@ -78,6 +127,12 @@ export function PropertyPanel({ component, onUpdate }: PropertyPanelProps) {
           form={form}
           layout="vertical"
           onValuesChange={handleValuesChange}
+          initialValues={{
+            ...config.defaultProps.style,
+            ...config.defaultProps.data,
+            ...component.props.style,
+            ...component.props.data,
+          }}
         >
           <Tabs
             items={[
@@ -92,25 +147,7 @@ export function PropertyPanel({ component, onUpdate }: PropertyPanelProps) {
                         label={editor.label}
                         name={editor.field}
                       >
-                        {editor.type === 'text' && (
-                          <Input placeholder={`请输入${editor.label}`} />
-                        )}
-                        {editor.type === 'number' && (
-                          <InputNumber
-                            min={editor.min}
-                            max={editor.max}
-                            step={editor.step}
-                          />
-                        )}
-                        {editor.type === 'color' && (
-                          <ColorPicker />
-                        )}
-                        {editor.type === 'select' && (
-                          <Select options={editor.options} />
-                        )}
-                        {editor.type === 'switch' && (
-                          <Switch />
-                        )}
+                        {renderEditorField(editor)}
                       </Form.Item>
                     ))}
                   </Space>
@@ -127,15 +164,7 @@ export function PropertyPanel({ component, onUpdate }: PropertyPanelProps) {
                         label={editor.label}
                         name={editor.field}
                       >
-                        {editor.type === 'text' && (
-                          <Input.TextArea rows={4} placeholder={`请输入${editor.label}`} />
-                        )}
-                        {editor.type === 'select' && (
-                          <Select options={editor.options} />
-                        )}
-                        {editor.type === 'switch' && (
-                          <Switch />
-                        )}
+                        <Input />
                       </Form.Item>
                     ))}
                   </Space>

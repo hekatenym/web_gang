@@ -14,11 +14,17 @@ export interface TextProps extends ComponentProps {
 }
 
 const Text: React.FC<TextProps> = ({ style, data }) => {
+  const mergedStyle = {
+    ...style,
+    fontSize: typeof style.fontSize === 'number' ? `${style.fontSize}px` : style.fontSize,
+  };
+
   return (
-    <div style={style}>
+    <div style={mergedStyle}>
       {data?.text || '点击编辑文本'}
     </div>
   );
 };
 
-export default Text; 
+// 使用 React.memo 包裹组件，只有当 props 发生变化时才重新渲染
+export default React.memo(Text); 

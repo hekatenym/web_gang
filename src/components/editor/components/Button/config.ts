@@ -11,11 +11,11 @@ export const ButtonConfig: ComponentRegistration = {
   defaultProps: {
     style: {
       width: 'auto',
-      padding: '4px 15px',
+      padding: { top: 4, right: 12, bottom: 4, left: 12 },
       backgroundColor: '#1677ff',
       color: '#fff',
       border: 'none',
-      borderRadius: '6px',
+      borderRadius: 6,
       cursor: 'pointer',
     },
     data: {
@@ -42,6 +42,16 @@ export const ButtonConfig: ComponentRegistration = {
         min: 0,
         max: 20,
         step: 1,
+        defaultValue: 6,
+      },
+      {
+        label: '内边距',
+        type: 'space',
+        field: 'padding',
+        min: 0,
+        max: 40,
+        step: 4,
+        defaultValue: { top: 4, right: 12, bottom: 4, left: 12 },
       },
     ],
     data: [

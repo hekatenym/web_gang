@@ -5,6 +5,7 @@ import { EditorLayout } from './layout/EditorLayout';
 import { generateId } from '@/lib/utils';
 import { getComponentConfig } from '@/config/components';
 import { ComponentType, type Component } from '@/types/component';
+import { DndProvider } from './DndProvider';
 
 interface EditorProps {
   initialComponents?: Component[];
@@ -32,23 +33,40 @@ export function Editor({
 
   // 处理拖拽结束事件
   const handleDragEnd = useCallback((result: DropResult) => {
-    if (!result.destination) {
-      return;
-    }
+    if (!result.destination || result.type !== 'COMPONENT') return;
 
     const { source, destination } = result;
 
+    // 从组件面板拖到画布
+    if (source.droppableId === 'component-panel' && destination.droppableId === 'canvas') {
+      const componentType = result.draggableId.replace('component-', '') as ComponentType;
+      const config = getComponentConfig(componentType);
+      
+      if (config) {
+        const newComponent: Component = {
+          id: generateId(),
+          type: componentType,
+          props: {
+            style: { ...config.defaultProps.style },
+            data: { ...config.defaultProps.data }
+          }
+        };
+
+        setComponents(prevComponents => {
+          const newComponents = [...prevComponents];
+          newComponents.splice(destination.index, 0, newComponent);
+          onChange?.(newComponents);
+          return newComponents;
+        });
+      }
+    }
     // 画布内排序
-    if (source.droppableId === 'canvas' && destination.droppableId === 'canvas') {
+    else if (source.droppableId === 'canvas' && destination.droppableId === 'canvas') {
       setComponents(prevComponents => {
         const newComponents = Array.from(prevComponents);
         const [movedComponent] = newComponents.splice(source.index, 1);
         newComponents.splice(destination.index, 0, movedComponent);
-        
-        if (onChange) {
-          onChange(newComponents);
-        }
-        
+        onChange?.(newComponents);
         return newComponents;
       });
     }
@@ -93,14 +111,16 @@ export function Editor({
   }, [components, onSave]);
 
   return (
-    <EditorLayout
-      components={components}
-      selectedComponent={selectedComponent}
-      onComponentSelect={handleComponentSelect}
-      onComponentUpdate={handleComponentUpdate}
-      onComponentDelete={handleComponentDelete}
-      onDragEnd={handleDragEnd}
-    />
+    <DndProvider onDragEnd={handleDragEnd}>
+      <EditorLayout
+        components={components}
+        selectedComponent={selectedComponent}
+        onComponentSelect={handleComponentSelect}
+        onComponentUpdate={handleComponentUpdate}
+        onComponentDelete={handleComponentDelete}
+        onSave={() => onSave?.(components)}
+      />
+    </DndProvider>
   );
 }
 

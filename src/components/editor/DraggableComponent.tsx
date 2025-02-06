@@ -15,14 +15,14 @@ interface DraggableComponentProps {
   children: React.ReactNode;
 }
 
-export function DraggableComponent({
+export const DraggableComponent = React.memo(({
   component,
   index,
   isSelected,
   onSelect,
   onDelete,
   children,
-}: DraggableComponentProps) {
+}: DraggableComponentProps) => {
   const { token } = useToken();
 
   const componentStyle = (isDragging: boolean): React.CSSProperties => ({
@@ -98,6 +98,13 @@ export function DraggableComponent({
       )}
     </Draggable>
   );
-}
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.component.id === nextProps.component.id &&
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.index === nextProps.index &&
+    JSON.stringify(prevProps.component.props) === JSON.stringify(nextProps.component.props)
+  );
+});
 
-export default React.memo(DraggableComponent); 
+export default DraggableComponent; 

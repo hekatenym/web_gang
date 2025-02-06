@@ -66,15 +66,13 @@ export interface ComponentData {
 // 组件属性编辑器接口
 export interface ComponentEditor {
   label: string;
-  type: 'text' | 'number' | 'color' | 'select' | 'switch';
+  type: 'text' | 'number' | 'color' | 'select' | 'switch' | 'space';
   field: string;
-  options?: Array<{
-    label: string;
-    value: any;
-  }>;
+  options?: { label: string; value: string | number }[];
   min?: number;
   max?: number;
   step?: number;
+  defaultValue?: any;
 }
 
 // 组件注册接口

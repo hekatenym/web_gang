@@ -11,9 +11,10 @@ export const TextConfig: ComponentRegistration = {
   defaultProps: {
     style: {
       width: '100%',
-      padding: '12px',
-      fontSize: '14px',
-      color: '#333',
+      padding: 12,
+      fontSize: 14,
+      color: '#333333',
+      textAlign: 'left',
     },
     data: {
       text: '点击编辑文本',
@@ -33,6 +34,7 @@ export const TextConfig: ComponentRegistration = {
         min: 12,
         max: 72,
         step: 1,
+        defaultValue: 14,
       },
       {
         label: '对齐方式',
@@ -43,6 +45,15 @@ export const TextConfig: ComponentRegistration = {
           { label: '居中', value: 'center' },
           { label: '右对齐', value: 'right' },
         ],
+      },
+      {
+        label: '内边距',
+        type: 'number',
+        field: 'padding',
+        min: 0,
+        max: 100,
+        step: 4,
+        defaultValue: 12,
       },
     ],
     data: [

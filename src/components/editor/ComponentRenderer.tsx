@@ -16,12 +16,11 @@ interface ComponentRendererProps {
   isPreview?: boolean;
 }
 
-export function ComponentRenderer({ component, isPreview = false }: ComponentRendererProps) {
+export const ComponentRenderer = React.memo(({ component, isPreview = false }: ComponentRendererProps) => {
   const ComponentToRender = componentMap[component.type as ComponentType];
   const config = getComponentConfig(component.type as ComponentType);
 
   if (!ComponentToRender) {
-    console.error(`Component type ${component.type} not found in:`, componentMap);
     return null;
   }
 
@@ -43,6 +42,16 @@ export function ComponentRenderer({ component, isPreview = false }: ComponentRen
       isPreview={isPreview}
     />
   );
-}
+}, (prevProps, nextProps) => {
+  // 自定义比较函数，只有当组件 ID 相同且属性发生变化时才重新渲染
+  if (prevProps.component.id !== nextProps.component.id) {
+    return false;
+  }
+  
+  return (
+    JSON.stringify(prevProps.component.props) === JSON.stringify(nextProps.component.props) &&
+    prevProps.isPreview === nextProps.isPreview
+  );
+});
 
-export default React.memo(ComponentRenderer);
+export default ComponentRenderer;
