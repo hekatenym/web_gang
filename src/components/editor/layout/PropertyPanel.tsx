@@ -1,7 +1,7 @@
 import React from 'react';
 import { Form, Input, InputNumber, Select, Switch, Tabs, ColorPicker, Card, Space, Divider } from 'antd';
-import type { Component } from '@/types/component';
-import { componentDefinitions } from '@/config/components';
+import type { Component, ComponentType } from '@/types/component';
+import { getComponentConfig } from '@/config/components';
 import { theme } from 'antd';
 
 const { useToken } = theme;
@@ -34,18 +34,19 @@ export function PropertyPanel({ component, onUpdate }: PropertyPanelProps) {
     );
   }
 
-  const componentDef = componentDefinitions[component.type];
+  const config = getComponentConfig(component.type as ComponentType);
 
   const handleValuesChange = (changedValues: any) => {
-    if (!onUpdate) return;
+    if (!onUpdate || !config) return;
 
-    const styleKeys = ['width', 'height', 'margin', 'padding', 'color', 'backgroundColor', 'fontSize', 'fontWeight'];
     const newStyle = { ...component.props.style };
     const newData = { ...component.props.data };
 
     // 分类处理变更的值
     Object.entries(changedValues).forEach(([key, value]) => {
-      if (styleKeys.includes(key)) {
+      // 检查是否是样式属性
+      const isStyleField = config.editors.style.some(editor => editor.field === key);
+      if (isStyleField) {
         newStyle[key] = value;
       } else {
         newData[key] = value;
@@ -62,13 +63,20 @@ export function PropertyPanel({ component, onUpdate }: PropertyPanelProps) {
     });
   };
 
+  if (!config) {
+    return (
+      <div className="p-4 text-center text-gray-400">
+        未找到组件配置
+      </div>
+    );
+  }
+
   return (
     <div className="p-4">
-      <Card title={`${componentDef?.label || component.type} 属性`} size="small">
+      <Card title={`${config.title} 属性`} size="small">
         <Form
           form={form}
           layout="vertical"
-          // 移除 initialValues，改用 useEffect 设置表单值
           onValuesChange={handleValuesChange}
         >
           <Tabs
@@ -78,40 +86,33 @@ export function PropertyPanel({ component, onUpdate }: PropertyPanelProps) {
                 label: '样式',
                 children: (
                   <Space direction="vertical" className="w-full">
-                    <Form.Item label="宽度" name="width">
-                      <Input placeholder="例如: 100% 或 200px" />
-                    </Form.Item>
-                    
-                    <Form.Item label="高度" name="height">
-                      <Input placeholder="例如: auto 或 200px" />
-                    </Form.Item>
-
-                    <Form.Item label="内边距" name="padding">
-                      <Input placeholder="例如: 8px 或 8px 16px" />
-                    </Form.Item>
-
-                    <Form.Item label="外边距" name="margin">
-                      <Input placeholder="例如: 8px 或 8px 16px" />
-                    </Form.Item>
-
-                    <Divider orientation="left" plain>文字样式</Divider>
-
-                    <Form.Item label="字体大小" name="fontSize">
-                      <InputNumber
-                        min={12}
-                        max={72}
-                        formatter={value => `${value}px`}
-                        parser={value => value!.replace('px', '')}
-                      />
-                    </Form.Item>
-
-                    <Form.Item label="字体颜色" name="color">
-                      <ColorPicker />
-                    </Form.Item>
-
-                    <Form.Item label="背景颜色" name="backgroundColor">
-                      <ColorPicker />
-                    </Form.Item>
+                    {config.editors.style.map(editor => (
+                      <Form.Item
+                        key={editor.field}
+                        label={editor.label}
+                        name={editor.field}
+                      >
+                        {editor.type === 'text' && (
+                          <Input placeholder={`请输入${editor.label}`} />
+                        )}
+                        {editor.type === 'number' && (
+                          <InputNumber
+                            min={editor.min}
+                            max={editor.max}
+                            step={editor.step}
+                          />
+                        )}
+                        {editor.type === 'color' && (
+                          <ColorPicker />
+                        )}
+                        {editor.type === 'select' && (
+                          <Select options={editor.options} />
+                        )}
+                        {editor.type === 'switch' && (
+                          <Switch />
+                        )}
+                      </Form.Item>
+                    ))}
                   </Space>
                 ),
               },
@@ -120,33 +121,23 @@ export function PropertyPanel({ component, onUpdate }: PropertyPanelProps) {
                 label: '数据',
                 children: (
                   <Space direction="vertical" className="w-full">
-                    {component.type === 'text' && (
-                      <Form.Item label="文本内容" name="text">
-                        <Input.TextArea rows={4} />
+                    {config.editors.data.map(editor => (
+                      <Form.Item
+                        key={editor.field}
+                        label={editor.label}
+                        name={editor.field}
+                      >
+                        {editor.type === 'text' && (
+                          <Input.TextArea rows={4} placeholder={`请输入${editor.label}`} />
+                        )}
+                        {editor.type === 'select' && (
+                          <Select options={editor.options} />
+                        )}
+                        {editor.type === 'switch' && (
+                          <Switch />
+                        )}
                       </Form.Item>
-                    )}
-                    
-                    {component.type === 'image' && (
-                      <>
-                        <Form.Item label="图片地址" name="src">
-                          <Input placeholder="请输入图片URL" />
-                        </Form.Item>
-                        <Form.Item label="替代文本" name="alt">
-                          <Input placeholder="请输入图片描述" />
-                        </Form.Item>
-                      </>
-                    )}
-
-                    {component.type === 'button' && (
-                      <>
-                        <Form.Item label="按钮文本" name="text">
-                          <Input placeholder="请输入按钮文本" />
-                        </Form.Item>
-                        <Form.Item label="链接地址" name="link">
-                          <Input placeholder="请输入链接地址" />
-                        </Form.Item>
-                      </>
-                    )}
+                    ))}
                   </Space>
                 ),
               },

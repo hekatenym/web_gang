@@ -66,21 +66,23 @@ export function Canvas({
         >
           {Array.isArray(components) && components.length > 0 ? (
             <>
-              {components.map((component, index) => (
-                <DraggableComponent
-                  key={component.id}
-                  component={component}
-                  index={index}
-                  isSelected={selectedId === component.id}
-                  onSelect={onSelect}
-                  onDelete={onDelete}
-                >
-                  <ComponentRenderer
+              {components.map((component, index) => {
+                return (
+                  <DraggableComponent
+                    key={component.id}
                     component={component}
-                    isPreview={false}
-                  />
-                </DraggableComponent>
-              ))}
+                    index={index}
+                    isSelected={selectedId === component.id}
+                    onSelect={onSelect}
+                    onDelete={onDelete}
+                  >
+                    <ComponentRenderer
+                      component={component}
+                      isPreview={false}
+                    />
+                  </DraggableComponent>
+                );
+              })}
               {provided.placeholder}
             </>
           ) : (

@@ -1,19 +1,13 @@
 import React from 'react';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
-import { componentDefinitions } from '@/config/components';
+import { getAvailableComponents } from '@/config/components';
 import { theme } from 'antd';
 
 const { useToken } = theme;
 
-export function ComponentPanel() {
+const ComponentPanel: React.FC = () => {
   const { token } = useToken();
-
-  const panelStyle: React.CSSProperties = {
-    padding: token.padding,
-    background: token.colorBgContainer,
-    borderRadius: token.borderRadiusLG,
-    height: '100%',
-  };
+  const components = getAvailableComponents();
 
   const componentItemStyle = (isDragging: boolean): React.CSSProperties => ({
     padding: token.paddingSM,
@@ -30,11 +24,20 @@ export function ComponentPanel() {
   return (
     <Droppable droppableId="component-panel" isDropDisabled>
       {(provided) => (
-        <div ref={provided.innerRef} {...provided.droppableProps} style={panelStyle}>
-          {Object.entries(componentDefinitions).map(([type, def], index) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.droppableProps}
+          style={{
+            padding: token.padding,
+            background: token.colorBgContainer,
+            borderRadius: token.borderRadiusLG,
+            height: '100%',
+          }}
+        >
+          {components.map((config, index) => (
             <Draggable
-              key={`component-${type}`}
-              draggableId={`component-${type}`}
+              key={`component-${config.type}`}
+              draggableId={`component-${config.type}`}
               index={index}
             >
               {(provided, snapshot) => (
@@ -47,8 +50,8 @@ export function ComponentPanel() {
                     ...provided.draggableProps.style,
                   }}
                 >
-                  <span style={{ fontSize: 16 }}>{def.icon}</span>
-                  <span>{def.title}</span>
+                  <span style={{ fontSize: 16 }}>{config.icon}</span>
+                  <span>{config.title}</span>
                 </div>
               )}
             </Draggable>
@@ -58,6 +61,6 @@ export function ComponentPanel() {
       )}
     </Droppable>
   );
-}
+};
 
 export default React.memo(ComponentPanel); 

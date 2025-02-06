@@ -21,7 +21,7 @@ export function DraggableComponent({
   isSelected,
   onSelect,
   onDelete,
-  children
+  children,
 }: DraggableComponentProps) {
   const { token } = useToken();
 
@@ -98,4 +98,6 @@ export function DraggableComponent({
       )}
     </Draggable>
   );
-} 
+}
+
+export default React.memo(DraggableComponent); 

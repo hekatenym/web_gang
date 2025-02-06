@@ -1,12 +1,32 @@
-export { default as Text } from './Text';
-export { default as Image } from './Image';
-export { default as Container } from './Container';
-export { default as Button } from './Button';
+import { ComponentType } from '@/types/component';
+import Text from './Text/Text';
+import Image from './Image/Image';
+import Button from './Button/Button';
+import Container from './Container/Container';
 
-// 也可以导出组件相关的类型
-export type { TextProps } from './Text';
-export type { ImageProps } from './Image';
-export type { ContainerProps } from './Container';
-export type { ButtonProps } from './Button';
+import { TextConfig } from './Text/config';
+import { ImageConfig } from './Image/config';
+import { ButtonConfig } from './Button/config';
+import { ContainerConfig } from './Container/config';
 
-// 如果将来添加新组件，只需要在这里添加导出语句即可
+// 导出组件
+export {
+  Text,
+  Image,
+  Button,
+  Container,
+};
+
+// 导出配置
+export const componentConfigs = {
+  [ComponentType.TEXT]: TextConfig,
+  [ComponentType.IMAGE]: ImageConfig,
+  [ComponentType.BUTTON]: ButtonConfig,
+  [ComponentType.CONTAINER]: ContainerConfig,
+};
+
+// 导出类型
+export type { default as TextProps } from './Text/Text';
+export type { default as ImageProps } from './Image/Image';
+export type { default as ButtonProps } from './Button/Button';
+export type { default as ContainerProps } from './Container/Container'; 

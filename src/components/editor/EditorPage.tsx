@@ -18,6 +18,8 @@ import { generateId } from '@/lib/utils';
 import React from 'react';
 import { store } from '@/store/index';
 import { DndProvider } from '@/components/DndProvider';
+import { ComponentType } from '@/types/component';
+import { getComponentConfig } from '@/config/components';
 
 const { Content } = Layout;
 
@@ -55,17 +57,26 @@ export function EditorPage({ id }: EditorPageProps) {
         const validComponents = Array.isArray(data.components) 
           ? data.components
             .filter(comp => comp != null)
-            .map(comp => ({
-              id: comp?.id || generateId(),
-              type: comp?.type || 'text',
-              props: {
-                style: {
-                  width: '100%',
-                  ...(comp?.props?.style || {})
-                },
-                data: comp?.props?.data || {}
-              }
-            }))
+            .map(comp => {
+              const type = comp?.type || ComponentType.TEXT;
+              const config = getComponentConfig(type);
+              
+              return {
+                id: comp?.id || generateId(),
+                type,
+                props: {
+                  style: {
+                    width: '100%',
+                    ...(config?.defaultProps.style || {}),
+                    ...(comp?.props?.style || {})
+                  },
+                  data: {
+                    ...(config?.defaultProps.data || {}),
+                    ...(comp?.props?.data || {})
+                  }
+                }
+              };
+            })
           : [];
 
         // 设置页面数据和组件
@@ -196,7 +207,6 @@ export function EditorPage({ id }: EditorPageProps) {
   };
 
   const handleComponentDelete = (componentId: string) => {
-    console.log('Deleting component:', componentId);
     dispatch(deleteComponent(componentId));
     if (selectedComponent?.id === componentId) {
       dispatch(setSelectedComponent(null));
@@ -205,15 +215,9 @@ export function EditorPage({ id }: EditorPageProps) {
 
   // 手动保存
   const handleSave = async () => {
-    if (!pageData?._id) {
-      console.warn('No page ID available for save');
-      return;
-    }
+    if (!pageData?._id) return;
 
     try {
-      console.log('Manual saving components:', components);
-      
-      // 规范化组件数据
       const normalizedComponents = components.map(comp => ({
         id: comp.id,
         type: comp.type,
@@ -228,39 +232,20 @@ export function EditorPage({ id }: EditorPageProps) {
         components: normalizedComponents,
       });
       
-      console.log('Manual save successful:', updatedPage);
       setPageData(updatedPage);
       message.success('保存成功');
     } catch (error) {
-      console.error('保存失败:', error);
       message.error('保存失败');
     }
   };
 
   const handleAddComponent = (component: Component) => {
     try {
-      console.log('Adding new component:', component);
-      
-      // 添加到画布
       const newComponents = [...components, component];
-      
-      console.log('State update:', {
-        oldComponents: components,
-        newComponents: newComponents
-      });
-      
-      // 更新状态
       dispatch(setComponents(newComponents));
-      
-      // 自动保存
       handleAutoSave(newComponents);
-
-      // 自动选中新添加的组件
       dispatch(setSelectedComponent(component));
-
-      console.log('Component added successfully');
     } catch (error) {
-      console.error('Error adding component:', error);
       message.error('添加组件失败');
     }
   };

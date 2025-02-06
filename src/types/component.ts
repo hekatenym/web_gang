@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 // 组件类型枚举
 export enum ComponentType {
   TEXT = 'text',
@@ -32,7 +34,7 @@ export interface ComponentStyle {
   border?: string;
   boxShadow?: string;
   
-  // 添加缺失的样式属性
+  // 其他样式属性
   lineHeight?: string | number;
   minHeight?: string | number;
   cursor?: 'default' | 'pointer' | 'text' | 'move' | 'not-allowed';
@@ -61,37 +63,6 @@ export interface ComponentData {
   spacing?: string | number;
 }
 
-// 组件定义接口
-export interface ComponentDefinition {
-  type: ComponentType;
-  label: string;
-  icon?: React.ReactNode;
-  defaultProps: {
-    style: Partial<ComponentStyle>;
-    data: Partial<ComponentData>;
-  };
-  propTypes?: Array<{
-    name: string;
-    label: string;
-    type: string;
-    options?: Array<{
-      label: string;
-      value: any;
-    }>;
-  }>;
-}
-
-// 组件接口
-export interface Component {
-  id: string;
-  type: ComponentType;
-  props: {
-    style: ComponentStyle;
-    data: ComponentData;
-  };
-  children?: Component[];
-}
-
 // 组件属性编辑器接口
 export interface ComponentEditor {
   label: string;
@@ -106,10 +77,36 @@ export interface ComponentEditor {
   step?: number;
 }
 
-// 组件配置接口
-export interface ComponentConfig {
+// 组件注册接口
+export interface ComponentRegistration {
+  type: ComponentType;
+  title: string;
+  icon: ReactNode;
+  component: React.ComponentType<ComponentProps>;
+  defaultProps: {
+    style: Partial<ComponentStyle>;
+    data: Partial<ComponentData>;
+  };
   editors: {
     style: ComponentEditor[];
     data: ComponentEditor[];
   };
+}
+
+// 组件Props接口
+export interface ComponentProps {
+  style: Partial<ComponentStyle>;
+  data: Partial<ComponentData>;
+  children?: ReactNode;
+}
+
+// 组件实例接口
+export interface Component {
+  id: string;
+  type: ComponentType;
+  props: {
+    style: ComponentStyle;
+    data: ComponentData;
+  };
+  children?: Component[];
 }

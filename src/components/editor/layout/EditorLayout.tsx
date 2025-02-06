@@ -1,9 +1,9 @@
 import React from 'react';
 import { Layout, Button, Space, Tooltip, theme } from 'antd';
-import { ComponentPanel } from './ComponentPanel';
+import ComponentPanel from './ComponentPanel';
 import { Canvas } from './Canvas';
 import { PropertyPanel } from './PropertyPanel';
-import type { Component } from '@/types/component';
+import type { Component, ComponentType } from '@/types/component';
 import type { DropResult } from '@hello-pangea/dnd';
 import { 
   SaveOutlined, 
@@ -15,7 +15,7 @@ import {
   FontSizeOutlined
 } from '@ant-design/icons';
 import { generateId } from '@/lib/utils';
-import { componentDefinitions } from '@/config/components';
+import { getComponentConfig } from '@/config/components';
 
 const { Header, Sider, Content } = Layout;
 const { useToken } = theme;
@@ -106,30 +106,24 @@ export function EditorLayout({
   };
 
   const handleDragEnd = React.useCallback((result: DropResult, component?: Component) => {
-    // 确保 onDragEnd 存在
     if (onDragEnd) {
       onDragEnd(result, component);
-    } else {
-      console.warn('onDragEnd prop is not provided');
     }
   }, [onDragEnd]);
 
   const handleAddTextComponent = () => {
-    const componentDef = componentDefinitions.text;
-    if (!componentDef) return;
+    const config = getComponentConfig(ComponentType.TEXT);
+    if (!config) return;
 
     const newComponent: Component = {
       id: generateId(),
-      type: 'text',
+      type: ComponentType.TEXT,
       props: {
         style: {
-          width: '100%',
-          padding: '12px',
-          ...componentDef.defaultProps?.style
+          ...config.defaultProps.style,
         },
         data: {
-          text: '新建文本',
-          ...componentDef.defaultProps?.data
+          ...config.defaultProps.data,
         }
       }
     };

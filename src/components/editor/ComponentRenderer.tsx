@@ -1,6 +1,15 @@
 import React from 'react';
-import type { Component } from '@/types/component';
-import { componentDefinitions } from '@/config/components';
+import { Component, ComponentType } from '@/types/component';
+import { getComponentConfig } from '@/config/components';
+import { Text, Image, Button, Container } from './components';
+
+// 创建组件映射表
+const componentMap = {
+  [ComponentType.TEXT]: Text,
+  [ComponentType.IMAGE]: Image,
+  [ComponentType.BUTTON]: Button,
+  [ComponentType.CONTAINER]: Container,
+};
 
 interface ComponentRendererProps {
   component: Component;
@@ -8,73 +17,32 @@ interface ComponentRendererProps {
 }
 
 export function ComponentRenderer({ component, isPreview = false }: ComponentRendererProps) {
-  const componentDef = componentDefinitions[component.type];
+  const ComponentToRender = componentMap[component.type as ComponentType];
+  const config = getComponentConfig(component.type as ComponentType);
 
-  if (!componentDef) {
-    return (
-      <div style={{ padding: 8, border: '1px solid red', color: 'red' }}>
-        未知组件类型: {component.type}
-      </div>
-    );
+  if (!ComponentToRender) {
+    console.error(`Component type ${component.type} not found in:`, componentMap);
+    return null;
   }
 
-  // 基础样式
-  const baseStyle: React.CSSProperties = {
-    ...component.props?.style,
-    position: 'relative',
+  // 合并默认属性和组件属性
+  const style = {
+    ...config?.defaultProps.style,
+    ...component.props.style,
   };
 
-  // 预览模式样式
-  const previewStyle: React.CSSProperties = isPreview ? {
-    pointerEvents: 'none',
-    opacity: 0.7,
-  } : {};
-
-  const finalStyle = {
-    ...baseStyle,
-    ...previewStyle,
+  const data = {
+    ...config?.defaultProps.data,
+    ...component.props.data,
   };
 
-  // 根据组件类型渲染不同的内容
-  switch (component.type) {
-    case 'text':
-      return (
-        <div style={finalStyle}>
-          {component.props?.data?.text || '文本组件'}
-        </div>
-      );
-    
-    case 'image':
-      return (
-        <img
-          src={component.props?.data?.src || 'https://via.placeholder.com/400x200'}
-          alt={component.props?.data?.alt || ''}
-          style={finalStyle}
-        />
-      );
-    
-    case 'button':
-      return (
-        <button
-          style={finalStyle}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (!isPreview && component.props?.data?.link) {
-              window.open(component.props.data.link, '_blank');
-            }
-          }}
-        >
-          {component.props?.data?.text || '按钮'}
-        </button>
-      );
-
-    default:
-      return (
-        <div style={{ padding: 8, border: '1px solid red', color: 'red' }}>
-          未知组件类型: {component.type}
-        </div>
-      );
-  }
+  return (
+    <ComponentToRender
+      style={style}
+      data={data}
+      isPreview={isPreview}
+    />
+  );
 }
 
 export default React.memo(ComponentRenderer);
